@@ -50,6 +50,8 @@ public final class ResultParser extends AbstractComponent {
     @Override
     protected void execute() throws Exception {
         Map<String, List<ExperimentResult>> results = extractExperimentResults(resultsDir, resultDescriptor);
+        if (results.isEmpty())
+            return;
 
         Path output = resultsDir.resolve(String.format("%s_processed.csv", resultDescriptor));
 
@@ -74,15 +76,16 @@ public final class ResultParser extends AbstractComponent {
     private static Map<String, List<ExperimentResult>> extractExperimentResults(Path resultsDir, String descriptor) throws IOException {
         Map<String, List<ExperimentResult>> results = new TreeMap<>();
         Files.list(resultsDir).filter(dir -> Files.isDirectory(dir)).forEach(dir -> {
-            String dirName = dir.getFileName().toString();
-            results.put(dirName, new ArrayList<>());
+            List<ExperimentResult> contents = new ArrayList<>();
             try {
                 Files.list(dir).filter(f -> f.getFileName().toString().contains(descriptor)).forEach(f -> {
                     try {
-                        results.get(dirName).add(processContent(f.getFileName().toString(), Files.readAllLines(f)));
+                        contents.add(processContent(f.getFileName().toString(), Files.readAllLines(f)));
                     } catch (IOException ignored) {
                     }
                 });
+                if (!contents.isEmpty())
+                    results.put(dir.getFileName().toString(), contents);
             } catch (IOException ignored) {
             }
         });
