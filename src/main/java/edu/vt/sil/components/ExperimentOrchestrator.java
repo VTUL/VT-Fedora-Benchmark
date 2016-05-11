@@ -86,7 +86,8 @@ public final class ExperimentOrchestrator extends AbstractComponent {
                 if (arguments.length != 2)
                     throw new IllegalArgumentException(String.format("Invalid number of parameters. " +
                             "Expected: 2 - Received: %s", arguments.length));
-                if (!executedCommands.contains(RabbitMQCommand.FULL_INGESTION))
+                if (!executedCommands.contains(RabbitMQCommand.FULL_INGESTION) ||
+                        !executedCommands.contains(RabbitMQCommand.PROXY_INGESTION))
                     throw new IllegalArgumentException(String.format("%s depends on ingestion. Run it first", command));
 
                 URL fedoraUrl = new URL(arguments[0]);

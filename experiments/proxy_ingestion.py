@@ -12,7 +12,7 @@ def create_fedora_object(rdf_data, fedora_url, filename):
     storage = StringIO()
     c = pycurl.Curl()
     c.setopt(c.URL, "{}/{}".format(fedora_url, filename[:-3]))
-    c.setopt(c.PUT, 1)
+    c.setopt(pycurl.CUSTOMREQUEST, "PUT")
     c.setopt(pycurl.HTTPHEADER, ["Content-type: text/turtle"])
     c.setopt(c.POSTFIELDS, rdf_data)
     c.setopt(c.WRITEFUNCTION, storage.write)
@@ -20,7 +20,7 @@ def create_fedora_object(rdf_data, fedora_url, filename):
     c.close()
     content = storage.getvalue()
 
-    return content.decode('iso-8859-1')
+    return content
 
 
 def run(fedora_url, remote_file_downloader, work_item_client):
@@ -58,9 +58,6 @@ def run(fedora_url, remote_file_downloader, work_item_client):
             progress.append("Ingestion," + file_name + "," + str(ingestion) + "," + str(time.time()))
             url_file.write(object_url + "\n")
             print object_url
-
-        # cleanup
-        os.remove(file_name)
 
     duration = str(time.time() - tic)
     end = str(datetime.datetime.now())

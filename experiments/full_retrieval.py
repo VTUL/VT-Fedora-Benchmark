@@ -25,9 +25,9 @@ def run(work_item_client):
         # download hdf5 file
         download = time.time()
         call("wget -nv " + fedora_h5_url + " -O " + file_name, shell=True)
-        download_elapsed = time.time() - download
-        progress.append("Download," + fedora_obj_url + "," + str(download) + "," + str(download + download_elapsed))
+        progress.append("Download," + fedora_obj_url + "," + str(download) + "," + str(time.time()))
 
+        # cleanup
         os.remove(file_name)
 
     duration = str(time.time() - tic)
