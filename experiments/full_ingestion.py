@@ -65,7 +65,7 @@ def run(fedora_url, remote_file_downloader, work_item_client):
 
         # create Fedora object
         rdf_data = 'PREFIX dc: <http://purl.org/dc/elements/1.1/> <> dc:title "' + file_name + '" . ' + \
-                   '<> dc:source "' + remote_file_downloader.get_remote_url(file_name) + '"'
+                   '<> dc:source "' + file_name + '"'
 
         ingestion = time.time()
         object_url = ""

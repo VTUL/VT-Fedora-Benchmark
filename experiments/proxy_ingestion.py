@@ -23,7 +23,7 @@ def create_fedora_object(rdf_data, fedora_url, filename):
     return content
 
 
-def run(fedora_url, remote_file_downloader, work_item_client):
+def run(fedora_url, work_item_client):
     output_file = open("experiment_proxy_ingestion_{}_results.csv".format(datetime.date.today()), "a")
     url_file = open("fedoraurls.txt", "a")
 
@@ -41,7 +41,7 @@ def run(fedora_url, remote_file_downloader, work_item_client):
 
         # create Fedora object
         rdf_data = 'PREFIX dc: <http://purl.org/dc/elements/1.1/> <> dc:title "' + file_name + '" . ' + \
-                   '<> dc:source "' + remote_file_downloader.get_remote_url(file_name) + '"'
+                   '<> dc:source "' + file_name + '"'
 
         ingestion = time.time()
         object_url = ""
@@ -74,6 +74,6 @@ if __name__ == "__main__":
     google_drive_dir = sys.argv[2]
     data_set_filename = sys.argv[3]
 
-    from commons import GoogleDriveDownloader, FileSystemClient
+    from commons import FileSystemClient
 
-    run(fedoraurl, GoogleDriveDownloader(google_drive_dir), FileSystemClient(data_set_filename))
+    run(fedoraurl, FileSystemClient(data_set_filename))

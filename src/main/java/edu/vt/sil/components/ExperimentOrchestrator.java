@@ -60,19 +60,10 @@ public final class ExperimentOrchestrator extends AbstractComponent {
                 }
                 break;
             case RUN_FULL_INGESTION:
-            case RUN_PROXY_INGESTION:
-                if (activeWorkers.isEmpty())
-                    throw new IllegalArgumentException("There are no active workers. Start workers first");
-                if (arguments.length != 4)
-                    throw new IllegalArgumentException(String.format("Invalid number of parameters. " +
-                            "Expected: 4 - Received: %s", arguments.length));
+                validate(arguments, 4);
 
                 fedoraUrl = new URL(arguments[0]);
-                // validation
-                fedoraUrl.toURI();
-
                 storageType = StorageType.valueOf(arguments[1].toUpperCase());
-
                 storageFolder = arguments[2];
                 if (storageFolder == null || storageFolder.isEmpty())
                     throw new IllegalArgumentException("Cannot use null/empty storage folder");
@@ -80,21 +71,30 @@ public final class ExperimentOrchestrator extends AbstractComponent {
                 hdf5WorkItems = prepareHDF5WorkItems(arguments[3], null);
                 break;
             case RUN_FULL_RETRIEVAL:
-            case RUN_PROXY_RETRIEVAL:
-                if (activeWorkers.isEmpty())
-                    throw new IllegalArgumentException("There are no active workers. Start workers first");
-                if (arguments.length != 2)
-                    throw new IllegalArgumentException(String.format("Invalid number of parameters. " +
-                            "Expected: 2 - Received: %s", arguments.length));
-                if (!executedCommands.contains(RabbitMQCommand.FULL_INGESTION) &&
-                        !executedCommands.contains(RabbitMQCommand.PROXY_INGESTION))
+                validate(arguments, 2);
+                if (!executedCommands.contains(RabbitMQCommand.FULL_INGESTION))
                     throw new IllegalArgumentException(String.format("%s depends on ingestion. Run it first", command));
 
-                URL fedoraUrl = new URL(arguments[0]);
-                // validation
-                fedoraUrl.toURI();
+                hdf5WorkItems = prepareHDF5WorkItems(arguments[1], new URL(arguments[0]));
+                break;
+            case RUN_PROXY_INGESTION:
+                validate(arguments, 2);
 
-                hdf5WorkItems = prepareHDF5WorkItems(arguments[1], fedoraUrl);
+                fedoraUrl = new URL(arguments[0]);
+
+                hdf5WorkItems = prepareHDF5WorkItems(arguments[1], null);
+                break;
+            case RUN_PROXY_RETRIEVAL:
+                validate(arguments, 4);
+                if (!executedCommands.contains(RabbitMQCommand.PROXY_INGESTION))
+                    throw new IllegalArgumentException(String.format("%s depends on ingestion. Run it first", command));
+
+                storageType = StorageType.valueOf(arguments[1].toUpperCase());
+                storageFolder = arguments[2];
+                if (storageFolder == null || storageFolder.isEmpty())
+                    throw new IllegalArgumentException("Cannot use null/empty storage folder");
+
+                hdf5WorkItems = prepareHDF5WorkItems(arguments[3], new URL(arguments[0]));
                 break;
             case STOP_WORKERS:
                 break;
@@ -105,22 +105,29 @@ public final class ExperimentOrchestrator extends AbstractComponent {
 
     @Override
     protected void execute() throws Exception {
+        Map<String, Object> headers = new HashMap<>();
         switch (command) {
             case START_WORKERS:
                 for (Integer count : workerCounts)
                     activeWorkers.addAll(producer.addWorkers(count));
                 break;
             case RUN_FULL_INGESTION:
-            case RUN_PROXY_INGESTION:
-                Map<String, Object> headers = new HashMap<>();
                 headers.put("fedoraUrl", fedoraUrl.toString());
                 headers.put("storageType", storageType.toString());
                 headers.put("storageFolder", storageFolder);
-                executeExperiment(command == AdministratorCommand.RUN_FULL_INGESTION ? RabbitMQCommand.FULL_INGESTION : RabbitMQCommand.PROXY_INGESTION, headers);
+                executeExperiment(RabbitMQCommand.FULL_INGESTION, headers);
                 break;
             case RUN_FULL_RETRIEVAL:
+                executeExperiment(RabbitMQCommand.FULL_RETRIEVAL, null);
+                break;
+            case RUN_PROXY_INGESTION:
+                headers.put("fedoraUrl", fedoraUrl.toString());
+                executeExperiment(RabbitMQCommand.PROXY_INGESTION, headers);
+                break;
             case RUN_PROXY_RETRIEVAL:
-                executeExperiment(command == AdministratorCommand.RUN_FULL_RETRIEVAL ? RabbitMQCommand.FULL_RETRIEVAL : RabbitMQCommand.PROXY_RETRIEVAL, null);
+                headers.put("storageType", storageType.toString());
+                headers.put("storageFolder", storageFolder);
+                executeExperiment(RabbitMQCommand.PROXY_RETRIEVAL, headers);
                 break;
             case STOP_WORKERS:
                 activeWorkers.removeAll(producer.sendControlMessage(RabbitMQCommand.SHUTDOWN, activeWorkers.size()));
@@ -135,10 +142,10 @@ public final class ExperimentOrchestrator extends AbstractComponent {
             case START_WORKERS:
                 return "<comma-separated worker count>";
             case RUN_FULL_INGESTION:
-            case RUN_PROXY_INGESTION:
+            case RUN_PROXY_RETRIEVAL:
                 return "<fedora url> <external storage type (Google_Drive, S3)> <external storage folder> <input file (HDF5 file names)>";
             case RUN_FULL_RETRIEVAL:
-            case RUN_PROXY_RETRIEVAL:
+            case RUN_PROXY_INGESTION:
                 return "<fedora url> <input file (HDF5 file names)>";
             case STOP_WORKERS:
                 return "";
@@ -169,5 +176,16 @@ public final class ExperimentOrchestrator extends AbstractComponent {
             throw new Exception("Unexpected error occurred. Received acknowledge from unknown workers");
 
         executedCommands.add(experiment);
+    }
+
+    private void validate(String[] arguments, int expected) throws Exception {
+        if (activeWorkers.isEmpty())
+            throw new IllegalArgumentException("There are no active workers. Start workers first");
+        if (arguments.length != expected)
+            throw new IllegalArgumentException(String.format("Invalid number of parameters. " +
+                    "Expected: %s - Received: %s", expected, arguments.length));
+
+        // validation
+        new URL(arguments[0]).toURI();
     }
 }

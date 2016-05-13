@@ -62,10 +62,10 @@ public final class BatchAdministrator {
                             handler.handleCommand(AdministratorCommand.RUN_FULL_RETRIEVAL, fedoraUrl, dataset);
                             break;
                         case RUN_PROXY_INGESTION:
-                            handler.handleCommand(AdministratorCommand.RUN_PROXY_INGESTION, fedoraUrl, storageType, storageDirectory, dataset);
+                            handler.handleCommand(AdministratorCommand.RUN_PROXY_INGESTION, fedoraUrl, dataset);
                             break;
                         case RUN_PROXY_RETRIEVAL:
-                            handler.handleCommand(AdministratorCommand.RUN_PROXY_RETRIEVAL, fedoraUrl, dataset);
+                            handler.handleCommand(AdministratorCommand.RUN_PROXY_RETRIEVAL, fedoraUrl, storageType, storageDirectory, dataset);
                             break;
                         default:
                             System.out.println(String.format("Skipping illegal command: %s", command));

@@ -1,3 +1,5 @@
+import boto3
+
 from subprocess import call
 
 
@@ -8,9 +10,6 @@ class RemoteFileDownloader(object):
     def download_from_storage(self, filename, destination):
         raise NotImplementedError
 
-    def get_remote_url(self, filename):
-        raise NotImplementedError
-
 
 class GoogleDriveDownloader(RemoteFileDownloader):
     def __init__(self, google_drive_dir):
@@ -18,22 +17,16 @@ class GoogleDriveDownloader(RemoteFileDownloader):
         self.url = "https://googledrive.com/host/" + google_drive_dir + "/{}"
 
     def download_from_storage(self, filename, destination):
-        call("wget -nv " + self.get_remote_url(filename) + " -O " + destination, shell=True)
-
-    def get_remote_url(self, filename):
-        return self.url.format(filename)
+        call("wget -nv " + self.url.format(filename) + " -O " + destination, shell=True)
 
 
 class S3Downloader(RemoteFileDownloader):
     def __init__(self, s3_bucket):
         super(S3Downloader, self).__init__()
-        self.url = "https://s3.amazonaws.com/" + s3_bucket + "/{}"
+        self.s3_bucket = boto3.resource("s3").Bucket(s3_bucket)
 
     def download_from_storage(self, filename, destination):
-        call("wget -nv " + self.get_remote_url(filename) + " -O " + destination, shell=True)
-
-    def get_remote_url(self, filename):
-        return self.url.format(filename)
+        self.s3_bucket.download_file(filename, destination)
 
 
 class WorkItemClient(object):

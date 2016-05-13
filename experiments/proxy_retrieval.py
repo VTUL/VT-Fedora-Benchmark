@@ -22,7 +22,7 @@ def read_fedora_object(fedora_url):
     return content
 
 
-def run(work_item_client):
+def run(work_item_client, remote_file_downloader):
     output_file = open("experiment_proxy_retrieval_{}_results.csv".format(datetime.date.today()), "a")
 
     progress = []
@@ -41,12 +41,12 @@ def run(work_item_client):
         # retrieve file url from Fedora
         url = time.time()
         content = read_fedora_object(fedora_obj_url)
-        fedora_content_url = str(json.loads(content)[0]['http://purl.org/dc/elements/1.1/source'][0]['@value'])
+        s3_filename = str(json.loads(content)[0]['http://purl.org/dc/elements/1.1/source'][0]['@value'])
         progress.append("UrlFetch," + fedora_obj_url + "," + str(url) + "," + str(time.time()))
 
         # download hdf5 file
         download = time.time()
-        call("wget -nv " + fedora_content_url + " -O " + file_name, shell=True)
+        remote_file_downloader.download_from_storage(s3_filename, file_name)
         progress.append("Download," + fedora_obj_url + "," + str(download) + "," + str(time.time()))
 
         # cleanup
@@ -63,7 +63,8 @@ def run(work_item_client):
 
 if __name__ == "__main__":
     fedora_urls_filename = sys.argv[1]
+    google_drive_dir = sys.argv[2]
 
-    from commons import FileSystemClient
+    from commons import FileSystemClient, GoogleDriveDownloader
 
-    run(FileSystemClient(fedora_urls_filename))
+    run(FileSystemClient(fedora_urls_filename), GoogleDriveDownloader(google_drive_dir))
