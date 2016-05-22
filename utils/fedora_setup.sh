@@ -1,4 +1,6 @@
 #!/bin/bash
+FEDORA_VERSION="4.2.0"
+
 sudo add-apt-repository ppa:openjdk-r/ppa -y
 
 sudo apt-get update && sudo apt-get install -y \
@@ -30,11 +32,7 @@ sudo sed -i '0,/JAVA_OPTS=".*"/s//JAVA_OPTS=\"-Djava.awt.headless=true -Xmx512m 
 sudo sed -i "s:\${HOME}:${HOME}:" /etc/default/tomcat7
 
 cd
-curl -s https://api.github.com/repos/fcrepo4/fcrepo4/releases \
-	| grep browser_download_url.*.war \
-	| head -n 1 \
-	| cut -d '"' -f 4 \
-	| xargs wget -O fedora.war
+wget "https://github.com/fcrepo4/fcrepo4/releases/download/fcrepo-${FEDORA_VERSION}/fcrepo-webapp-${FEDORA_VERSION}.war" -O fedora.war
 sudo mv fedora.war /var/lib/tomcat7/webapps
 
 sudo service tomcat7 restart
