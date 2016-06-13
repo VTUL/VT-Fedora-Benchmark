@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -74,6 +75,7 @@ public final class BatchAdministrator {
                 handler.handleCommand(AdministratorCommand.FETCH_RESULTS, workerIps, remoteProps.get("command"),
                         localResultsDirectory, remoteProps.get("prefix"), remoteProps.get("suffixes"));
                 handler.handleCommand(AdministratorCommand.STOP_WORKERS);
+                TimeUnit.MINUTES.sleep(5);
             }
 
             handler.handleCommand(AdministratorCommand.PROCESS_RESULTS, localResultsDirectory, RabbitMQCommand.FULL_INGESTION.name().toLowerCase());
