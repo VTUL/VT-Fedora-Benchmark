@@ -25,14 +25,11 @@ sudo ln -s $(readlink -f /usr/bin/java | sed "s:bin/java::" | sed "s:/jre/::") /
 
 sudo apt-get install tomcat7 tomcat7-admin -y
 
-cd
-mkdir fedora-data
+sudo mkdir fedora-data
 sudo chown tomcat7:tomcat7 fedora-data
-sudo sed -i '0,/JAVA_OPTS=".*"/s//JAVA_OPTS=\"-Djava.awt.headless=true -Xmx512m -XX:MaxPermSize=512m -XX:+UseConcMarkSweepGC -Dfcrepo.home=${HOME}\/fedora-data\"/' /etc/default/tomcat7
-sudo sed -i "s:\${HOME}:${HOME}:" /etc/default/tomcat7
+sudo sed -i '0,/JAVA_OPTS=".*"/s//JAVA_OPTS=\"-Djava.awt.headless=true -Xmx512m -XX:MaxPermSize=512m -XX:+UseConcMarkSweepGC -Dfcrepo.home=\/fedora-data\"/' /etc/default/tomcat7
 
-cd
-wget "https://github.com/fcrepo4/fcrepo4/releases/download/fcrepo-${FEDORA_VERSION}/fcrepo-webapp-${FEDORA_VERSION}.war" -O fedora.war
+sudo wget "https://github.com/fcrepo4/fcrepo4/releases/download/fcrepo-${FEDORA_VERSION}/fcrepo-webapp-${FEDORA_VERSION}.war" -O fedora.war
 sudo mv fedora.war /var/lib/tomcat7/webapps
 
 sudo service tomcat7 restart

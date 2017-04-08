@@ -2,6 +2,11 @@
   user: ubuntu
   become: yes
   become_user: root
+  gather_facts: False
+  pre_tasks:
+    - raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
+    - setup: # aka gather_facts
+
   tasks:
 
     - name: Transfer Fedora Bootstrap script
@@ -9,5 +14,24 @@
 
     - name: Run Fedora Bootstrap to install Fedora
       command: ./ubuntu_fedora_bootstrap.sh
+      args:
+        chdir: /
+
+- hosts: tag_ansible_rabbitmq
+  user: ubuntu
+  become: yes
+  become_user: root
+  gather_facts: False
+  pre_tasks:
+    - raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
+    - setup: # aka gather_facts
+
+  tasks:
+
+    - name: Transfer RabbitMQ Bootstrap script
+      copy: src=../user_scripts/ubuntu_rabbitmq_bootstrap.sh dest=/ mode=0777
+
+    - name: Run RabbitMQ Bootstrap to install RabbitMQ
+      command: ./ubuntu_rabbitmq_bootstrap.sh
       args:
         chdir: /
