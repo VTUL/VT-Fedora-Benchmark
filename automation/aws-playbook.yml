@@ -1,0 +1,7 @@
+- hosts: tag_ansible_fedora
+  user: ubuntu
+  sudo: yes
+  tasks:
+
+    - name: Run Fedora Bootstrap to install Fedora
+      script: ../user_scripts/ubuntu_fedora_bootstrap.sh
