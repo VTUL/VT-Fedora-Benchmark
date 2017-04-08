@@ -17,6 +17,17 @@
       args:
         chdir: /
 
+- hosts: localhost
+  connection: local
+  gather_facts: False
+  tasks:
+
+    - name: Update experiments-setup.properties with Fedora URL
+      lineinfile:
+        dest: ../src/main/resources/experiments-setup.properties
+        regexp: "^fedora-url="
+        line: "fedora-url=http://{{ hostvars[groups['tag_ansible_fedora'][0]]['ec2_ip_address'] }}:8080/fedora/rest"
+
 - hosts: tag_ansible_rabbitmq
   user: ubuntu
   become: yes
@@ -33,5 +44,53 @@
 
     - name: Run RabbitMQ Bootstrap to install RabbitMQ
       command: ./ubuntu_rabbitmq_bootstrap.sh
+      args:
+        chdir: /
+
+- hosts: localhost
+  connection: local
+  gather_facts: False
+  tasks:
+
+    - name: Update experiments-setup.properties with RabbitMQ host
+      lineinfile:
+        dest: ../src/main/resources/experiments-setup.properties
+        regexp: "^rabbitmq-host="
+        line: "rabbitmq-host={{ hostvars[groups['tag_ansible_rabbitmq'][0]]['ec2_ip_address'] }}"
+
+    - name: Update experiments-setup.properties with RabbitMQ username
+      lineinfile:
+        dest: ../src/main/resources/experiments-setup.properties
+        regexp: "^rabbitmq-username="
+        line: "rabbitmq-username=admin"
+
+    - name: Update experiments-setup.properties with RabbitMQ password
+      lineinfile:
+        dest: ../src/main/resources/experiments-setup.properties
+        regexp: "^rabbitmq-password="
+        line: "rabbitmq-password=admin"
+
+    - name: Update ubuntu_client_bootstrap with RabbitMQ URL
+      lineinfile:
+        dest: ../user_scripts/ubuntu_client_bootstrap.sh
+        regexp: "^RABBITMQ_URL="
+        line: "RABBITMQ_URL={{ hostvars[groups['tag_ansible_rabbitmq'][0]]['ec2_ip_address'] }}"
+
+- hosts: tag_ansible_client
+  user: ubuntu
+  become: yes
+  become_user: root
+  gather_facts: False
+  pre_tasks:
+    - raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
+    - setup: # aka gather_facts
+
+  tasks:
+
+    - name: Transfer Cleint Bootstrap script
+      copy: src=../user_scripts/ubuntu_client_bootstrap.sh dest=/ mode=0777
+
+    - name: Run Client Bootstrap to install supervisord and start experiment orchestrator
+      command: ./ubuntu_client_bootstrap.sh
       args:
         chdir: /
