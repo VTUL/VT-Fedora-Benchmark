@@ -94,3 +94,20 @@
       command: ./ubuntu_client_bootstrap.sh
       args:
         chdir: /
+
+- hosts: localhost
+  connection: local
+  gather_facts: False
+  tasks:
+
+    - name: Update experiments-setup.properties with workers public IPs
+      lineinfile:
+        dest: ../src/main/resources/experiments-setup.properties
+        regexp: "^workers-public-ips="
+        line: "workers-public-ips={% for ip in groups['tag_ansible_client'] %}{{hostvars[ip]['ec2_ip_address']}}{% if not loop.last %},{% endif %}{% endfor %}"
+
+    - name: Clear ubuntu_client_bootstrap RabbitMQ URL
+      lineinfile:
+        dest: ../user_scripts/ubuntu_client_bootstrap.sh
+        regexp: "^RABBITMQ_URL="
+        line: "RABBITMQ_URL="
