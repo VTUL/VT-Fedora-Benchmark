@@ -23,6 +23,7 @@ sudo pip install pika
 sudo apt-get install python-dev -y
 sudo apt-get install python-numpy python-nose -y
 sudo apt-get install python-scipy -y
+sudo apt-get install python-pycurl -y
 sudo pip install cython
 sudo apt-get install libhdf5-dev -y
 sudo pip install xmltodict
