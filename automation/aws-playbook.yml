@@ -1,5 +1,46 @@
+- hosts: localhost
+  connection: local
+  gather_facts: False
+  tasks:
+
+    - name: Update experiments-setup.properties from group_vars/all config file - dataset_input_file
+      lineinfile:
+        dest: ../src/main/resources/experiments-setup.properties
+        regexp: "^dataset-input-file="
+        line: "dataset-input-file={{ dataset_input_file }}"
+
+    - name: Update experiments-setup.properties from group_vars/all config file - s3_bucket
+      lineinfile:
+        dest: ../src/main/resources/experiments-setup.properties
+        regexp: "^external-storage-directory="
+        line: "external-storage-directory={{ s3_bucket }}"
+
+    - name: Update experiments-setup.properties from group_vars/all config file - ssh_username
+      lineinfile:
+        dest: ../src/main/resources/experiments-setup.properties
+        regexp: "^ssh-username="
+        line: "ssh-username={{ ssh_username }}"
+
+    - name: Update experiments-setup.properties from group_vars/all config file - ssh_private_key_name
+      lineinfile:
+        dest: ../src/main/resources/experiments-setup.properties
+        regexp: "^ssh-private-key-name="
+        line: "ssh-private-key-name={{ ssh_private_key_name }}"
+
+    - name: Update experiments-setup.properties from group_vars/all config file - benchmark_suite_file
+      lineinfile:
+        dest: ../src/main/resources/experiments-setup.properties
+        regexp: "^benchmark-suite-file="
+        line: "benchmark-suite-file={{ benchmark_suite_file }}"
+
+    - name: Update experiments-setup.properties from group_vars/all config file - local_results_directory
+      lineinfile:
+        dest: ../src/main/resources/experiments-setup.properties
+        regexp: "^local-results-directory="
+        line: "local-results-directory={{ local_results_directory }}"
+
 - hosts: tag_ansible_fedora
-  user: ubuntu
+  user: "{{ ssh_username }}"
   become: yes
   become_user: root
   gather_facts: False
@@ -16,6 +57,7 @@
       command: ./ubuntu_fedora_bootstrap.sh
       args:
         chdir: /
+        creates: fedora-data
 
 - hosts: localhost
   connection: local
@@ -29,7 +71,7 @@
         line: "fedora-url=http://{{ hostvars[groups['tag_ansible_fedora'][0]]['ec2_ip_address'] }}:8080/fedora/rest"
 
 - hosts: tag_ansible_rabbitmq
-  user: ubuntu
+  user: "{{ ssh_username }}"
   become: yes
   become_user: root
   gather_facts: False
@@ -46,6 +88,7 @@
       command: ./ubuntu_rabbitmq_bootstrap.sh
       args:
         chdir: /
+        creates: var/lib/rabbitmq
 
 - hosts: localhost
   connection: local
@@ -77,7 +120,7 @@
         line: "RABBITMQ_URL={{ hostvars[groups['tag_ansible_rabbitmq'][0]]['ec2_ip_address'] }}"
 
 - hosts: tag_ansible_client
-  user: ubuntu
+  user: "{{ ssh_username }}"
   become: yes
   become_user: root
   gather_facts: False
@@ -87,13 +130,14 @@
 
   tasks:
 
-    - name: Transfer Cleint Bootstrap script
+    - name: Transfer Client Bootstrap script
       copy: src=../user_scripts/ubuntu_client_bootstrap.sh dest=/ mode=0777
 
     - name: Run Client Bootstrap to install supervisord and start experiment orchestrator
       command: ./ubuntu_client_bootstrap.sh
       args:
         chdir: /
+        creates: etc/supervisord.conf
 
 - hosts: localhost
   connection: local

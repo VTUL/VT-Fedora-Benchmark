@@ -1,0 +1,28 @@
+### Global Variable for VT-Fedora-Benchmark ###
+
+## Data set properties
+
+# File containing HDF5 file names (see src/main/resources for examples and use escaped backslashes if on Windows)
+dataset_input_file: <enter_value_here>
+
+# S3 bucket where HDF5 files are stored
+s3_bucket: <enter_value_here>
+
+## SSH properties
+
+# User name for SSH to EC2 instances (default: ubuntu)
+ssh_username: ubuntu
+
+# Private key filename associated with public key stored on EC2 instances (should be in ~/.ssh)
+ssh_private_key_name: <enter_value_here>
+
+## Benchmark properties
+
+# File containing benchmark runs (see src/main/resources/benchmarks/full-fedora-benchmark-suite.json for format
+# and use escaped backslashes if on Windows)
+benchmark_suite_file: <enter_value_here>
+
+## Results properties
+
+# Directory where results should be stored (use escaped backslashes if on Windows)
+local_results_directory: <enter_value_here>
