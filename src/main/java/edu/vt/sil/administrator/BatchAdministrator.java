@@ -155,7 +155,7 @@ public final class BatchAdministrator {
     private static String extractExternalStorageType(Properties properties) {
         String storageType = properties.getProperty("external-storage-type");
         if (storageType == null || storageType.isEmpty() ||
-                !Arrays.stream(StorageType.values()).map(Enum::toString).anyMatch(t -> t.equals(storageType.toUpperCase()))) {
+                Arrays.stream(StorageType.values()).map(Enum::toString).noneMatch(t -> t.equals(storageType.toUpperCase()))) {
             System.out.println("Cannot use null/empty external storage type");
             System.exit(-1);
         }
