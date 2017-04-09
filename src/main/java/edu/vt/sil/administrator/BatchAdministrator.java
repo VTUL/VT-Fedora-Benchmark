@@ -75,7 +75,10 @@ public final class BatchAdministrator {
                 handler.handleCommand(AdministratorCommand.FETCH_RESULTS, workerIps, remoteProps.get("command"),
                         localResultsDirectory, remoteProps.get("prefix"), remoteProps.get("suffixes"));
                 handler.handleCommand(AdministratorCommand.STOP_WORKERS);
-                TimeUnit.MINUTES.sleep(5);
+
+                int timeout = 2;
+                System.out.println(String.format("Sleeping for %s minutes\n", timeout));
+                TimeUnit.MINUTES.sleep(timeout);
             }
 
             handler.handleCommand(AdministratorCommand.PROCESS_RESULTS, localResultsDirectory, RabbitMQCommand.FULL_INGESTION.name().toLowerCase());
