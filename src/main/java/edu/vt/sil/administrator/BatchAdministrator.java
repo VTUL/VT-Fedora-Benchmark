@@ -75,7 +75,10 @@ public final class BatchAdministrator {
                 handler.handleCommand(AdministratorCommand.FETCH_RESULTS, workerIps, remoteProps.get("command"),
                         localResultsDirectory, remoteProps.get("prefix"), remoteProps.get("suffixes"));
                 handler.handleCommand(AdministratorCommand.STOP_WORKERS);
-                TimeUnit.MINUTES.sleep(5);
+
+                int timeout = 40;
+                System.out.println(String.format("Sleeping for %s seconds\n", timeout));
+                TimeUnit.SECONDS.sleep(timeout);
             }
 
             handler.handleCommand(AdministratorCommand.PROCESS_RESULTS, localResultsDirectory, RabbitMQCommand.FULL_INGESTION.name().toLowerCase());
@@ -155,7 +158,7 @@ public final class BatchAdministrator {
     private static String extractExternalStorageType(Properties properties) {
         String storageType = properties.getProperty("external-storage-type");
         if (storageType == null || storageType.isEmpty() ||
-                !Arrays.stream(StorageType.values()).map(Enum::toString).anyMatch(t -> t.equals(storageType.toUpperCase()))) {
+                Arrays.stream(StorageType.values()).map(Enum::toString).noneMatch(t -> t.equals(storageType.toUpperCase()))) {
             System.out.println("Cannot use null/empty external storage type");
             System.exit(-1);
         }

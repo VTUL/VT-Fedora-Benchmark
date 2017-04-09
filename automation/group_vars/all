@@ -1,0 +1,54 @@
+### Global Variable for VT-Fedora-Benchmark ###
+
+## SSH properties
+
+# User name for SSH to EC2 instances (default: ubuntu)
+ssh_username: ubuntu
+
+# Private key filename (i.e. my_aws_key.pem) associated with public key stored on EC2 instances (should be in ~/.ssh)
+ssh_private_key_name:
+
+## EC2 instance properties
+
+# AWS region in which EC2 instances run
+aws_region:
+
+# VPC id for VPC where EC2 instances run
+vpc_id:
+
+# VPC subnet id for VPC subnet where EC2 instances run
+vpc_subnet_id:
+
+# Fedora EC2 instance type (t2.micro, m4.large, ...)
+fedora_ec2_instance_type:
+
+# RabbitMQ EC2 instance type (t2.micro, m4.large, ...)
+rabbitmq_ec2_instance_type:
+
+# Clients EC2 instance type (t2.micro, m4.large, ...)
+client_ec2_instance_type:
+
+# Number of clients EC2 instances
+client_ec2_instance_count:
+
+# EC2 AMI used for benchmark's EC2 instances (default: Ubuntu Server 16.04 LTS (HVM), SSD Volume Type)
+ec2_image: ami-f4cc1de2
+
+## Data set properties
+
+# File containing HDF5 file names (see src/main/resources for examples and use escaped backslashes if on Windows)
+dataset_input_file:
+
+# S3 bucket where HDF5 files are stored
+s3_bucket:
+
+## Benchmark properties
+
+# File containing benchmark runs (see src/main/resources/benchmarks/full-fedora-benchmark-suite.json for format
+# and use escaped backslashes if on Windows)
+benchmark_suite_file:
+
+## Results properties
+
+# Directory where results should be stored (use escaped backslashes if on Windows)
+local_results_directory:

@@ -1,0 +1,294 @@
+- hosts: localhost
+  connection: local
+  gather_facts: False
+  tasks:
+
+    - name: Update experiments-setup.properties from group_vars/all config file - dataset_input_file
+      lineinfile:
+        dest: ../src/main/resources/experiments-setup.properties
+        regexp: "^dataset-input-file="
+        line: "dataset-input-file={{ dataset_input_file }}"
+
+    - name: Update experiments-setup.properties from group_vars/all config file - s3_bucket
+      lineinfile:
+        dest: ../src/main/resources/experiments-setup.properties
+        regexp: "^external-storage-directory="
+        line: "external-storage-directory={{ s3_bucket }}"
+
+    - name: Update experiments-setup.properties from group_vars/all config file - ssh_username
+      lineinfile:
+        dest: ../src/main/resources/experiments-setup.properties
+        regexp: "^ssh-username="
+        line: "ssh-username={{ ssh_username }}"
+
+    - name: Update experiments-setup.properties from group_vars/all config file - ssh_private_key_name
+      lineinfile:
+        dest: ../src/main/resources/experiments-setup.properties
+        regexp: "^ssh-private-key-name="
+        line: "ssh-private-key-name={{ ssh_private_key_name }}"
+
+    - name: Update experiments-setup.properties from group_vars/all config file - benchmark_suite_file
+      lineinfile:
+        dest: ../src/main/resources/experiments-setup.properties
+        regexp: "^benchmark-suite-file="
+        line: "benchmark-suite-file={{ benchmark_suite_file }}"
+
+    - name: Update experiments-setup.properties from group_vars/all config file - local_results_directory
+      lineinfile:
+        dest: ../src/main/resources/experiments-setup.properties
+        regexp: "^local-results-directory="
+        line: "local-results-directory={{ local_results_directory }}"
+
+- hosts: localhost
+  connection: local
+  gather_facts: False
+  tasks:
+
+    - name: Create EC2 Fedora security group
+      ec2_group:
+        name: fedora-benchmark-ansible-group
+        description: Security group created by Ansible for Fedora Benchmark
+        vpc_id: "{{ vpc_id }}"
+        region: "{{ aws_region }}"
+        rules:
+          - proto: tcp
+            from_port: 80
+            to_port: 80
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 8080
+            to_port: 8080
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 5672
+            to_port: 5672
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 15672
+            to_port: 15672
+            cidr_ip: 0.0.0.0/0
+
+#    # iam_role module didn't get released as part of Ansible 2.2.0.0
+#    # please create below role manually (keeping code around for future cases)
+#    - name: Create EC2 IAM role to access S3
+#      iam_role:
+#        name: FedoraAnsibleS3ReadRole
+#        assume_role_policy_document: "{{ lookup('file','policy.json') }}"
+#        state: present
+#        managed_policy:
+#          arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+
+    - name: Launch Fedora EC2 instance
+      ec2:
+        key_name: "{{ ssh_private_key_name | replace('.pem', '') }}"
+        group: fedora-benchmark-ansible-group
+        instance_type: "{{ fedora_ec2_instance_type }}"
+        image: "{{ ec2_image }}"
+        wait: true
+        region: "{{ aws_region }}"
+        vpc_subnet_id: "{{ vpc_subnet_id }}"
+        monitoring: yes
+        assign_public_ip: yes
+        instance_profile_name: FedoraAnsibleS3ReadRole
+        instance_tags:
+          Name: Fedora
+      register: ec2_fedora
+
+    - name: Add Fedora EC2 instance to host group
+      add_host:
+        hostname: "{{ item.public_ip }}"
+        groupname: fedora
+      with_items: "{{ ec2_fedora.instances }}"
+
+    - name: Wait for Fedora EC2 SSH to come up
+      wait_for:
+        host: "{{ item.public_ip }}"
+        port: 22
+        delay: 60
+        timeout: 320
+        state: started
+      with_items: "{{ ec2_fedora.instances }}"
+
+    - name: Launch RabbitMQ EC2 instance
+      ec2:
+        key_name: "{{ ssh_private_key_name | replace('.pem', '') }}"
+        group: fedora-benchmark-ansible-group
+        instance_type: "{{ rabbitmq_ec2_instance_type }}"
+        image: "{{ ec2_image }}"
+        wait: true
+        region: "{{ aws_region }}"
+        vpc_subnet_id: "{{ vpc_subnet_id }}"
+        monitoring: yes
+        assign_public_ip: yes
+        instance_profile_name: FedoraAnsibleS3ReadRole
+        instance_tags:
+          Name: RabbitMQ
+      register: ec2_rabbitmq
+
+    - name: Add RabbitMQ EC2 instance to host group
+      add_host:
+        hostname: "{{ item.public_ip }}"
+        groupname: rabbitmq
+      with_items: "{{ ec2_rabbitmq.instances }}"
+
+    - name: Wait for RabbitMQ EC2 SSH to come up
+      wait_for:
+        host: "{{ item.public_ip }}"
+        port: 22
+        delay: 60
+        timeout: 320
+        state: started
+      with_items: "{{ ec2_rabbitmq.instances }}"
+
+    - name: Launch Client EC2 instance/s
+      ec2:
+        key_name: "{{ ssh_private_key_name | replace('.pem', '') }}"
+        group: fedora-benchmark-ansible-group
+        instance_type: "{{ client_ec2_instance_type }}"
+        count: "{{ client_ec2_instance_count }}"
+        image: "{{ ec2_image }}"
+        wait: true
+        region: "{{ aws_region }}"
+        vpc_subnet_id: "{{ vpc_subnet_id }}"
+        monitoring: yes
+        assign_public_ip: yes
+        instance_profile_name: FedoraAnsibleS3ReadRole
+        instance_tags:
+          Name: Client
+      register: ec2_clients
+
+    - name: Add Client EC2 instance to host group
+      add_host:
+        hostname: "{{ item.public_ip }}"
+        groupname: clients
+      with_items: "{{ ec2_clients.instances }}"
+
+    - name: Wait for Client EC2 SSH to come up
+      wait_for:
+        host: "{{ item.public_ip }}"
+        port: 22
+        delay: 60
+        timeout: 320
+        state: started
+      with_items: "{{ ec2_clients.instances }}"
+
+- hosts: fedora
+  user: "{{ ssh_username }}"
+  become: yes
+  become_user: root
+  gather_facts: False
+  pre_tasks:
+    - raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
+    - setup: # aka gather_facts
+
+  tasks:
+
+    - name: Transfer Fedora Bootstrap script
+      copy: src=../user_scripts/ubuntu_fedora_bootstrap.sh dest=/ mode=0777
+
+    - name: Run Fedora Bootstrap to install Fedora
+      command: ./ubuntu_fedora_bootstrap.sh
+      args:
+        chdir: /
+        creates: fedora-data
+
+- hosts: localhost
+  connection: local
+  gather_facts: False
+  tasks:
+
+    - name: Update experiments-setup.properties with Fedora URL
+      lineinfile:
+        dest: ../src/main/resources/experiments-setup.properties
+        regexp: "^fedora-url="
+        line: "fedora-url=http://{{ ec2_fedora.instances[0].public_ip }}:8080/fedora/rest"
+
+- hosts: rabbitmq
+  user: "{{ ssh_username }}"
+  become: yes
+  become_user: root
+  gather_facts: False
+  pre_tasks:
+    - raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
+    - setup: # aka gather_facts
+
+  tasks:
+
+    - name: Transfer RabbitMQ Bootstrap script
+      copy: src=../user_scripts/ubuntu_rabbitmq_bootstrap.sh dest=/ mode=0777
+
+    - name: Run RabbitMQ Bootstrap to install RabbitMQ
+      command: ./ubuntu_rabbitmq_bootstrap.sh
+      args:
+        chdir: /
+        creates: var/lib/rabbitmq
+
+- hosts: localhost
+  connection: local
+  gather_facts: False
+  tasks:
+
+    - name: Update experiments-setup.properties with RabbitMQ host
+      lineinfile:
+        dest: ../src/main/resources/experiments-setup.properties
+        regexp: "^rabbitmq-host="
+        line: "rabbitmq-host={{ ec2_rabbitmq.instances[0].public_ip }}"
+
+    - name: Update experiments-setup.properties with RabbitMQ username
+      lineinfile:
+        dest: ../src/main/resources/experiments-setup.properties
+        regexp: "^rabbitmq-username="
+        line: "rabbitmq-username=admin"
+
+    - name: Update experiments-setup.properties with RabbitMQ password
+      lineinfile:
+        dest: ../src/main/resources/experiments-setup.properties
+        regexp: "^rabbitmq-password="
+        line: "rabbitmq-password=admin"
+
+    - name: Update ubuntu_client_bootstrap with RabbitMQ URL
+      lineinfile:
+        dest: ../user_scripts/ubuntu_client_bootstrap.sh
+        regexp: "^RABBITMQ_URL="
+        line: "RABBITMQ_URL={{ ec2_rabbitmq.instances[0].public_ip }}"
+
+- hosts: clients
+  user: "{{ ssh_username }}"
+  become: yes
+  become_user: root
+  gather_facts: False
+  pre_tasks:
+    - raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
+    - setup: # aka gather_facts
+
+  tasks:
+
+    - name: Transfer Client Bootstrap script
+      copy: src=../user_scripts/ubuntu_client_bootstrap.sh dest=/ mode=0777
+
+    - name: Run Client Bootstrap to install supervisord and start experiment orchestrator
+      command: ./ubuntu_client_bootstrap.sh
+      args:
+        chdir: /
+        creates: etc/supervisord.conf
+
+- hosts: localhost
+  connection: local
+  gather_facts: False
+  tasks:
+
+    - name: Update experiments-setup.properties with workers public IPs
+      lineinfile:
+        dest: ../src/main/resources/experiments-setup.properties
+        regexp: "^workers-public-ips="
+        line: "workers-public-ips={% for item in ec2_clients.instances %}{{item.public_ip}}{% if not loop.last %},{% endif %}{% endfor %}"
+
+    - name: Clear ubuntu_client_bootstrap RabbitMQ URL
+      lineinfile:
+        dest: ../user_scripts/ubuntu_client_bootstrap.sh
+        regexp: "^RABBITMQ_URL="
+        line: "RABBITMQ_URL="

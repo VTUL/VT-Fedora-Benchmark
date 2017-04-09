@@ -4,7 +4,7 @@ RABBITMQ_PASSWORD="admin"
 
 wget https://www.rabbitmq.com/rabbitmq-signing-key-public.asc
 sudo apt-key add rabbitmq-signing-key-public.asc
-sudo apt-get upgrade && supo apt-get update
+supo apt-get update
 sudo apt-get install rabbitmq-server -y
 sudo service rabbitmq-server start
 sudo rabbitmq-plugins enable rabbitmq_management
