@@ -35,18 +35,16 @@ Sample input set containing _60 HDF5 files of size 50MB_ is available here: http
 In addition it is necessary to manually create EC2 IAM role named **FedoraAnsibleS3ReadRole** with at least
 _AmazonS3ReadOnlyAccess_ managed policy (you can specify _AmazonS3FullAccess_ but it is not necessary).
 Please note that not all versions of Ansible EC2 allow programmatically create IAM roles on AWS, which is
-why, for now, is [this Ansible playbook step](aws-playbook.yml#L75) commented out. If you're positive that your version of Ansible
-supports mentioned functionality feel free to uncomment [following section](aws-playbook.yml#L75) in `automation/aws-playbook-yml`
-and skip this step.
+why, for now, is [this Ansible playbook step](automation/aws-playbook.yml#L75) commented out. If you're positive that your version of Ansible supports mentioned functionality feel free to uncomment [following section](automation/aws-playbook.yml#L75) in `automation/aws-playbook-yml` and skip this step.
 
 #### Executing Playbook
 
 After above-mentioned configuration has been performed you are ready to run the playbook and get resources
 set up. All the necessary files are stored under `automation` directory.
 
-1. Setup Ansible global variables stored in [automation/group_vars/all](all). Make sure to follow guidelines
+1. Setup Ansible global variables stored in [automation/group_vars/all](automation/group_vars/all). Make sure to follow guidelines
 stored in the same file for each variable.
-2. Execute Ansible playbook - [automation/aws-playbook.yml](aws-playbook.yml)
+2. Execute Ansible playbook - [automation/aws-playbook.yml](automation/aws-playbook.yml)
 ```
 # example execution
 ansible-playbook -i ec2.py automation/aws-playbook.yml
