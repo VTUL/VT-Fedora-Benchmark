@@ -44,10 +44,10 @@ set up. All the necessary files are stored under `automation` directory.
 
 1. Setup Ansible global variables stored in [automation/group_vars/all](automation/group_vars/all). Make sure to follow guidelines
 stored in the same file for each variable.
-2. Execute Ansible playbook - [automation/aws-playbook.yml](automation/aws-vm-playbook.yml)
+2. Execute Ansible playbook - [automation/aws-vm-playbook.yml](automation/aws-vm-playbook.yml)
 ```
 # example execution
-ansible-playbook -i ec2.py automation/aws-playbook.yml
+ansible-playbook -i ec2.py automation/aws-vm-playbook.yml
 ```
 
 ## Execution
