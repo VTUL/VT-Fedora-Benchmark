@@ -35,6 +35,8 @@ sudo rm get-pip.py
 sudo apt-get install mediainfo -y
 sudo wget http://projects.iq.harvard.edu/files/fits/files/fits-0.9.0.zip?m=1449588471 -O fits-0.9.0.zip
 sudo unzip fits-0.9.0.zip
+sudo sed -i '/lib\/mediainfo/s/^/<!--/' fits-0.9.0/xml/fits.xml
+sudo sed -i '/lib\/mediainfo/s/$/-->/' fits-0.9.0/xml/fits.xml
 sudo chmod +x fits-0.9.0/fits.sh
 
 if [ -d "vt-fedora-benchmark/experiments" ]; then

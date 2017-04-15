@@ -252,7 +252,7 @@
 
     - name: Update ubuntu_client_bootstrap with RabbitMQ URL
       lineinfile:
-        dest: ../user_scripts/ubuntu_client_bootstrap.sh
+        dest: ../user_scripts/vm/ubuntu_client_bootstrap.sh
         regexp: "^RABBITMQ_URL="
         line: "RABBITMQ_URL={{ ec2_rabbitmq.instances[0].public_ip }}"
 
@@ -289,6 +289,6 @@
 
     - name: Clear ubuntu_client_bootstrap RabbitMQ URL
       lineinfile:
-        dest: ../user_scripts/ubuntu_client_bootstrap.sh
+        dest: ../user_scripts/vm/ubuntu_client_bootstrap.sh
         regexp: "^RABBITMQ_URL="
         line: "RABBITMQ_URL="
