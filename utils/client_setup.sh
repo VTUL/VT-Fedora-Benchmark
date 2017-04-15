@@ -27,6 +27,7 @@ sudo apt-get install python-pycurl -y
 sudo pip install cython
 sudo apt-get install libhdf5-dev -y
 sudo pip install xmltodict
+sudo pip install requests
 sudo pip install h5py
 sudo pip install supervisor
 sudo apt-get install openjdk-8-jdk -y

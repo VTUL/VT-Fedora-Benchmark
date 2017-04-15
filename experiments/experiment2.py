@@ -32,7 +32,7 @@ def update_fedora_binary(update_str, fedora_url):
 
 def get_fedora_sha(input):
     json_data = json.loads(input)
-    sha_data = json_data[0]['http://www.loc.gov/premis/rdf/v1#hasMessageDigest'][0]['@id']
+    sha_data = json_data[0]['http://fedora.info/definitions/v4/repository#digest'][0]['@id']
 
     return sha_data.replace('urn:sha1:', "")
 
