@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -71,6 +72,10 @@ public final class BatchAdministrator {
                 handler.handleCommand(AdministratorCommand.FETCH_RESULTS, workerIps, remoteProps.get("command"),
                         localResultsDirectory, remoteProps.get("prefix"), remoteProps.get("suffixes"));
                 handler.handleCommand(AdministratorCommand.STOP_WORKERS);
+
+                int timeout = 40;
+                System.out.println(String.format("Sleeping for %s seconds\n", timeout));
+                TimeUnit.SECONDS.sleep(timeout);
             }
 
             handler.handleCommand(AdministratorCommand.PROCESS_RESULTS, localResultsDirectory, RabbitMQCommand.EXPERIMENT1.name().toLowerCase());
@@ -149,7 +154,7 @@ public final class BatchAdministrator {
     private static String extractExternalStorageType(Properties properties) {
         String storageType = properties.getProperty("external-storage-type");
         if (storageType == null || storageType.isEmpty() ||
-                !Arrays.stream(StorageType.values()).map(Enum::toString).anyMatch(t -> t.equals(storageType.toUpperCase()))) {
+                Arrays.stream(StorageType.values()).map(Enum::toString).noneMatch(t -> t.equals(storageType.toUpperCase()))) {
             System.out.println("Cannot use null/empty external storage type");
             System.exit(-1);
         }
@@ -239,7 +244,7 @@ public final class BatchAdministrator {
             benchmarkMap.put("workerCounts", workerCounts.stream().map(count -> String.valueOf(count.intValue())).collect(Collectors.toList()));
             List<String> steps = new Gson().<List<String>>fromJson(benchmark.getAsJsonObject().getAsJsonArray("steps"), List.class);
             if (steps.stream().anyMatch(step -> extractCommand(step) == null))
-                throw new IllegalArgumentException("Steps must correspond to administrative commands (RUN_EXPERIMENT");
+                throw new IllegalArgumentException("Steps must correspond to administrative commands");
             benchmarkMap.put("steps", steps);
             result.add(benchmarkMap);
         }

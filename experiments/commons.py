@@ -1,3 +1,5 @@
+import boto3
+
 from subprocess import call
 
 
@@ -21,10 +23,10 @@ class GoogleDriveDownloader(RemoteFileDownloader):
 class S3Downloader(RemoteFileDownloader):
     def __init__(self, s3_bucket):
         super(S3Downloader, self).__init__()
-        self.url = "https://s3.amazonaws.com/" + s3_bucket + "/{}"
+        self.s3_bucket = boto3.resource("s3").Bucket(s3_bucket)
 
     def download_from_storage(self, filename, destination):
-        call("wget -nv " + self.url.format(filename) + " -O " + destination, shell=True)
+        self.s3_bucket.download_file(filename, destination)
 
 
 class WorkItemClient(object):

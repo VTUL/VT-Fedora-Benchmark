@@ -12,10 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -65,7 +62,7 @@ public final class RemoteFileFetcher extends AbstractComponent {
         if (Files.notExists(localDir) || !Files.isDirectory(localDir))
             throw new IllegalArgumentException(String.format("No directory: %s", localDir));
 
-        tempDir = localDir.resolve("temp");
+        tempDir = localDir.resolve("temp" + UUID.randomUUID().toString());
         Files.deleteIfExists(tempDir);
         Files.createDirectory(tempDir);
 

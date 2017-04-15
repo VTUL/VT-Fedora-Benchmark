@@ -16,10 +16,10 @@ import java.util.TreeMap;
  * Author: dedocibula
  * Created on: 2.3.2016.
  */
-public final class CommandHandler {
+final class CommandHandler {
     private Map<AdministratorCommand, Component> mappings;
 
-    public CommandHandler(RabbitMQProducer producer, String remoteUserName, String privateKeyName) throws Exception {
+    CommandHandler(RabbitMQProducer producer, String remoteUserName, String privateKeyName) throws Exception {
         mappings = new TreeMap<>();
 
         ExperimentOrchestrator orchestrator = new ExperimentOrchestrator(producer);
@@ -35,12 +35,12 @@ public final class CommandHandler {
                 new OverlapProcessor()));
     }
 
-    public void printCommandLabels() {
+    void printCommandLabels() {
         for (AdministratorCommand command : mappings.keySet())
             System.out.println(String.format("\t%s %s", command, mappings.get(command).showLabel(command)));
     }
 
-    public void handleCommand(AdministratorCommand command, String... arguments) throws Exception {
+    void handleCommand(AdministratorCommand command, String... arguments) throws Exception {
         if (!mappings.containsKey(command))
             throw new IllegalArgumentException(String.format("Unrecognized command: %s", command));
 

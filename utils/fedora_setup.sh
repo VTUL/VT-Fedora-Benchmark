@@ -1,12 +1,5 @@
 #!/bin/bash
-FEDORA_DATA="/opt/fedora/fedora-data"
-if [ $# -ge 1 ]; then
-  FEDORA_DATA="$1"
-fi
-if [ $# -ge 2 ]; then
-  shift;
-  echo -n "Ignoring extra arguments: $@"
-fi
+FEDORA_VERSION="4.2.0"
 
 sudo add-apt-repository ppa:openjdk-r/ppa -y
 
@@ -32,17 +25,11 @@ sudo ln -s $(readlink -f /usr/bin/java | sed "s:bin/java::" | sed "s:/jre/::") /
 
 sudo apt-get install tomcat7 tomcat7-admin -y
 
-mkdir -p "$FEDORA_DATA"
-sudo chown tomcat7:tomcat7 "$FEDORA_DATA"
-sudo sed -i '0,/JAVA_OPTS=".*"/s//JAVA_OPTS=\"-Djava.awt.headless=true -Xmx512m -XX:MaxPermSize=512m -XX:+UseConcMarkSweepGC -Dfcrepo.home=${FEDORA_DATA}\"/' /etc/default/tomcat7
-sudo sed -i "s:\${FEDORA_DATA}:${FEDORA_DATA}:" /etc/default/tomcat7
+sudo mkdir fedora-data
+sudo chown tomcat7:tomcat7 fedora-data
+sudo sed -i '0,/JAVA_OPTS=".*"/s//JAVA_OPTS=\"-Djava.awt.headless=true -Xmx512m -XX:MaxPermSize=512m -XX:+UseConcMarkSweepGC -Dfcrepo.home=\/fedora-data\"/' /etc/default/tomcat7
 
-cd
-curl -s https://api.github.com/repos/fcrepo4/fcrepo4/releases \
-	| grep browser_download_url.*.war \
-	| head -n 1 \
-	| cut -d '"' -f 4 \
-	| xargs wget -O fedora.war
+sudo wget "https://github.com/fcrepo4/fcrepo4/releases/download/fcrepo-${FEDORA_VERSION}/fcrepo-webapp-${FEDORA_VERSION}.war" -O fedora.war
 sudo mv fedora.war /var/lib/tomcat7/webapps
 
 sudo service tomcat7 restart

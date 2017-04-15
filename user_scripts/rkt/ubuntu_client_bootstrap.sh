@@ -2,8 +2,9 @@
 RABBITMQ_URL=
 RABBITMQ_USERNAME="admin"
 RABBITMQ_PASSWORD="admin"
+RKT_VERSION="1.25.0"
 
-sudo apt-get upgrade && sudo apt-get update && sudo apt-get install -y \
+sudo apt-get update && sudo apt-get install -y \
     curl \
     git \
     ntp \
@@ -12,11 +13,11 @@ sudo apt-get upgrade && sudo apt-get update && sudo apt-get install -y \
 git clone https://github.com/VTUL/VT-Fedora-Benchmark.git vt-fedora-benchmark
 ln -s vt-fedora-benchmark/orchestrators/rkt_orchestrator.py collector.py
 
-wget https://github.com/coreos/rkt/releases/download/v1.3.0/rkt-v1.3.0.tar.gz
-tar xzvf rkt-v1.3.0.tar.gz
-mv rkt-v1.3.0 /usr/local/lib/
-ln -s /usr/local/lib/rkt-v1.3.0/rkt /usr/bin/rkt
-rm rkt-v1.3.0.tar.gz
+wget "https://github.com/coreos/rkt/releases/download/v${RKT_VERSION}/rkt-v${RKT_VERSION}.tar.gz"
+tar xzvf rkt-v${RKT_VERSION}.tar.gz
+mv rkt-v${RKT_VERSION} /usr/local/lib/
+ln -s /usr/local/lib/rkt-v${RKT_VERSION}/rkt /usr/bin/rkt
+rm rkt-v${RKT_VERSION}.tar.gz
 
 sudo rkt --insecure-options=image fetch docker://dedocibula/fedora-benchmark
 

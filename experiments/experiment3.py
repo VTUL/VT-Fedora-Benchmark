@@ -38,7 +38,7 @@ def run(work_item_client, results_destination=None):
         fedora_obj_url = work_item.strip()
         fedora_h5_url = fedora_obj_url + "/h5"
 
-        # download h5 file
+        # download hdf5 file
         download = time.time()
         call("wget -nv " + fedora_h5_url + " -O " + file_name, shell=True)
         progress.append("Download," + fedora_obj_url + "," + str(download) + "," + str(time.time()))

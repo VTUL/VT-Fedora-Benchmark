@@ -60,18 +60,10 @@ public final class ExperimentOrchestrator extends AbstractComponent {
                 }
                 break;
             case RUN_EXPERIMENT1:
-                if (activeWorkers.isEmpty())
-                    throw new IllegalArgumentException("There are no active workers. Start workers first");
-                if (arguments.length != 4)
-                    throw new IllegalArgumentException(String.format("Invalid number of parameters. " +
-                            "Expected: 4 - Received: %s", arguments.length));
+                validate(arguments, 4);
 
                 fedoraUrl = new URL(arguments[0]);
-                // validation
-                fedoraUrl.toURI();
-
                 storageType = StorageType.valueOf(arguments[1].toUpperCase());
-
                 storageFolder = arguments[2];
                 if (storageFolder == null || storageFolder.isEmpty())
                     throw new IllegalArgumentException("Cannot use null/empty storage folder");
@@ -80,19 +72,11 @@ public final class ExperimentOrchestrator extends AbstractComponent {
                 break;
             case RUN_EXPERIMENT2:
             case RUN_EXPERIMENT3:
-                if (activeWorkers.isEmpty())
-                    throw new IllegalArgumentException("There are no active workers. Start workers first");
-                if (arguments.length != 2)
-                    throw new IllegalArgumentException(String.format("Invalid number of parameters. " +
-                            "Expected: 2 - Received: %s", arguments.length));
+                validate(arguments, 2);
                 if (!executedCommands.contains(RabbitMQCommand.EXPERIMENT1))
                     throw new IllegalArgumentException(String.format("%s depends on experiment1. Run it first", command));
 
-                URL fedoraUrl = new URL(arguments[0]);
-                // validation
-                fedoraUrl.toURI();
-
-                hdf5WorkItems = prepareHDF5WorkItems(arguments[1], fedoraUrl);
+                hdf5WorkItems = prepareHDF5WorkItems(arguments[1], new URL(arguments[0]));
                 break;
             case STOP_WORKERS:
                 break;
@@ -167,5 +151,16 @@ public final class ExperimentOrchestrator extends AbstractComponent {
             throw new Exception("Unexpected error occurred. Received acknowledge from unknown workers");
 
         executedCommands.add(experiment);
+    }
+
+    private void validate(String[] arguments, int expected) throws Exception {
+        if (activeWorkers.isEmpty())
+            throw new IllegalArgumentException("There are no active workers. Start workers first");
+        if (arguments.length != expected)
+            throw new IllegalArgumentException(String.format("Invalid number of parameters. " +
+                    "Expected: %s - Received: %s", expected, arguments.length));
+
+        // validation
+        new URL(arguments[0]).toURI();
     }
 }
