@@ -24,6 +24,8 @@ machine. Please follow instructions mentioned in the Ansible documentation.
 2. Configure Ansible with EC2 - [AWS EC2 External Inventory](http://docs.ansible.com/ansible/intro_dynamic_inventory.html#example-aws-ec2-external-inventory-script)
 section
 
+Note: make sure SSH key is set up either in the SSH Agent or by using the "--private-key" option to the "ansible" command invocation.
+
 #### AWS
 
 After Ansible has been installed and properly set up it is necessary to make sure AWS is properly prepared.
